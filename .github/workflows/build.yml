@@ -27,9 +27,7 @@ jobs:
         #   }
     runs-on: windows-latest
     env:
-      libraryName: libgpg-error
-      installationPath: libgpg-error-installation
-      mingwTargetZip: libgpg-error-${{ github.ref_name }}-mingw64-x86_64-posix-seh-rev0-8.1.0.zip
+      libraryName: make
     steps:
       #       tagName: libgpg-error-1.47
       # - name: git clone
@@ -57,14 +55,14 @@ jobs:
       - shell: cmd
         run: |
           .\PortableGit-2.38.1-64-bit\usr\bin\tar.exe -zxvf make-4.4.tar.gz &&^
-          rename make-4.4 make
+          rename make-4.4 ${{ env.libraryName }}
           
       - name: set PATH, check mingw version, cmake generate, build and install
         shell: msys2 {0}
         run: |
             workspace=$(pwd) && \
             export PATH="$workspace/mingw64:$workspace/mingw64/bin:$workspace/PortableGit-2.38.1-64-bit:$workspace/PortableGit-2.38.1-64-bit/bin:$workspace/msys64/usr/bin:/usr/bin" &&  \
-            cd make &&  \
+            cd ${{ env.libraryName }} &&  \
             g++ --version &&  \
             ./configure --help && \
             ./configure --enable-static --prefix="$(pwd)/${{ env.installationPath }}" && \
@@ -74,12 +72,12 @@ jobs:
         uses: thedoctor0/zip-release@master
         with:
           type: 'zip'
-          directory: "make/${{ env.installationPath }}"
-          filename: "make-${{ github.ref_name }}-${{ matrix.compiler.name }}.zip"
+          directory: "${{ env.libraryName }}/${{ env.installationPath }}"
+          filename: "${{ env.libraryName }}-${{ github.ref_name }}-${{ matrix.compiler.name }}.zip"
         
       - name: Release prebuilt
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "make/${{ env.installationPath }}/make-${{ github.ref_name }}-${{ matrix.compiler.name }}.zip"
+          artifacts: "${{ env.libraryName }}/${{ env.installationPath }}/${{ env.libraryName }}-${{ github.ref_name }}-${{ matrix.compiler.name }}.zip"
           allowUpdates: true
           token: ${{ secrets.GITHUB_TOKEN }}
